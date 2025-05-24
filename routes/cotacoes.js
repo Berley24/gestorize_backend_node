@@ -2,7 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 
-const API_KEY = "cur_live_JUMhXvgYBP8TxMfUONEzTzkwvzmCC995Rsanlq8B"; // troque se necessário
+const API_KEY = "cur_live_JUMhXvgYBP8TxMfUONEzTzkwvzmCC995Rsanlq8B"; // use variável de ambiente se quiser segurança
 
 router.get("/", async (req, res) => {
   try {
@@ -16,10 +16,10 @@ router.get("/", async (req, res) => {
       }
     });
 
-    res.json(response.data);
+    res.json({ sucesso: true, dados: response.data.data });
   } catch (error) {
     console.error("❌ Erro ao buscar cotações:", error.message);
-    res.status(500).json({ erro: "Erro ao buscar cotações" });
+    res.status(500).json({ sucesso: false, erro: "Erro ao buscar cotações" });
   }
 });
 
