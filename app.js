@@ -8,19 +8,22 @@ const app = express();
 // Domínios permitidos para CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://gestorize.netlify.app/"
+  "https://gestorize.netlify.app"
 ];
 
-// Configuração do CORS com função
+// Configuração do CORS
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log("❌ Origem bloqueada por CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
