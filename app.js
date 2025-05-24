@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const API = import.meta.env.VITE_API_URL;
-
+const cors = require("cors");
 const path = require("path");
 
 const app = express();
@@ -9,7 +8,7 @@ const app = express();
 // Domínios permitidos para CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://gestorize.netlify.app"
+  "https://gestorize.netlify.app/"
 ];
 
 // Configuração do CORS com função
