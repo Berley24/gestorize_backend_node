@@ -1,8 +1,7 @@
-
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const path = require("path");
+
 const app = express();
 
 // Lista de domínios permitidos para CORS
@@ -11,34 +10,29 @@ const allowedOrigins = [
   "http://localhost:5173"
 ];
 
-// Configuração do CORS
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permitir requisições sem origem (como as feitas por ferramentas de teste)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.log("❌ Origem bloqueada por CORS:", origin);
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-};
+// Configuração manual de CORS
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
-app.use(cors(corsOptions));
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204); // pré-verificação CORS
+  }
 
-// Middleware para lidar com requisições OPTIONS (preflight)
-app.options("*", cors(corsOptions));
+  next();
+});
 
 app.use(express.json());
 
 // Servir arquivos estáticos da pasta uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Rotas públicas (sem autenticação)
+// Rotas públicas
 app.use("/produtos", require("./routes/produtos"));
 app.use("/custos", require("./routes/custos"));
 app.use("/contas", require("./routes/contas"));
@@ -51,7 +45,7 @@ app.get("/", (req, res) => {
 });
 
 // Iniciar servidor
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
