@@ -38,6 +38,8 @@ app.use("/custos", require("./routes/custos"));
 app.use("/contas", require("./routes/contas"));
 app.use("/movimentacoes", require("./routes/movimentacoes"));
 app.use("/cotacoes", require("./routes/cotacoes"));
+app.use("/noticias", require("./routes/noticias"));
+
 
 // Rota raiz para teste
 app.get("/", (req, res) => {
