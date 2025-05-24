@@ -1,16 +1,15 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const path = require("path");
-
 const app = express();
 
+// Domínios permitidos para CORS
 const allowedOrigins = [
   "http://localhost:5173",
   "https://gestorize.netlify.app"
 ];
 
-// Middleware CORS completo
+// Middleware CORS manual
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -20,7 +19,6 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  // Responde a requisições preflight diretamente
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
   }
@@ -33,19 +31,20 @@ app.use(express.json());
 // Servir arquivos da pasta uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Rotas públicas
+// Rotas públicas (sem autenticação)
 app.use("/produtos", require("./routes/produtos"));
 app.use("/custos", require("./routes/custos"));
 app.use("/contas", require("./routes/contas"));
 app.use("/movimentacoes", require("./routes/movimentacoes"));
 app.use("/cotacoes", require("./routes/cotacoes"));
 
-// Rota de teste
+// Rota raiz para teste
 app.get("/", (req, res) => {
   res.send("API do Gestorize está funcionando!");
 });
 
-const PORT = process.env.PORT || 1000;
+// Porta obrigatória para o Render
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
