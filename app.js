@@ -1,34 +1,41 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const path = require("path");
+
 const app = express();
 
-// Domínios permitidos para CORS
+// Lista de domínios permitidos para CORS
 const allowedOrigins = [
   "http://localhost:5173",
   "https://gestorize.netlify.app"
 ];
 
-// Middleware CORS manual
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+// Configuração do CORS
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requisições sem origem (como as feitas por ferramentas de teste)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log("❌ Origem bloqueada por CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
+app.use(cors(corsOptions));
 
-  next();
-});
+// Middleware para lidar com requisições OPTIONS (preflight)
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
-// Servir arquivos da pasta uploads
+// Servir arquivos estáticos da pasta uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Rotas públicas (sem autenticação)
@@ -43,8 +50,8 @@ app.get("/", (req, res) => {
   res.send("API do Gestorize está funcionando!");
 });
 
-// Porta obrigatória para o Render
-const PORT = process.env.PORT;
+// Iniciar servidor
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
