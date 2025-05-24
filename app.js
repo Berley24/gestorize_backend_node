@@ -29,11 +29,12 @@ app.use("/cotacoes", require("./routes/cotacoes"));
 
 // Rota raiz para teste
 app.get("/", (req, res) => {
-  res.send("🚀 API Gestorize online");
+  res.send("API do Gestorize está funcionando!");
 });
 
+
 // Iniciar servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 1000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
