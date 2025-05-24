@@ -1,17 +1,15 @@
-// Lista de domínios permitidos para CORS
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://gestorize.netlify.app"
-];
 
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
 const app = express();
 
-
+// Lista de domínios permitidos para CORS
+const allowedOrigins = [
+  "https://gestorize.netlify.app",
+  "http://localhost:5173"
+];
 
 // Configuração do CORS
 const corsOptions = {
