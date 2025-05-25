@@ -39,7 +39,7 @@ app.use("/contas", require("./routes/contas"));
 app.use("/movimentacoes", require("./routes/movimentacoes"));
 app.use("/cotacoes", require("./routes/cotacoes"));
 app.use("/noticias", require("./routes/noticias"));
-app.use("/dados", require("./routes/dados"));
+
 
 
 
