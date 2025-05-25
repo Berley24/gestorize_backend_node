@@ -1,12 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
-const { clerkMiddleware } = require("@clerk/express"); // 👈 IMPORTA O MIDDLEWARE
 
 const app = express();
-
-// 🔒 Middleware do Clerk (antes de qualquer rota que usa getAuth)
-app.use(clerkMiddleware()); // 👈 USA O MIDDLEWARE
 
 // Lista de domínios permitidos para CORS
 const allowedOrigins = [
@@ -14,7 +10,7 @@ const allowedOrigins = [
   "http://localhost:5173"
 ];
 
-// CORS manual
+// Configuração manual de CORS
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -24,23 +20,30 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  if (req.method === "OPTIONS") return res.sendStatus(204);
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204); // pré-verificação CORS
+  }
+
   next();
 });
 
 app.use(express.json());
+
+// Servir arquivos estáticos da pasta uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Rotas
+// Rotas públicas
 app.use("/produtos", require("./routes/produtos"));
 app.use("/custos", require("./routes/custos"));
 app.use("/contas", require("./routes/contas"));
 app.use("/movimentacoes", require("./routes/movimentacoes"));
 app.use("/cotacoes", require("./routes/cotacoes"));
 app.use("/noticias", require("./routes/noticias"));
-app.use("/dados", require("./routes/dados")); // ✅ Protegida, depende do middleware
+app.use("/dados", require("./routes/dados"));
 
-// Rota raiz
+
+
+// Rota raiz para teste
 app.get("/", (req, res) => {
   res.send("API do Gestorize está funcionando!");
 });
