@@ -1,18 +1,24 @@
 const db = require("../db/conexao");
 
-// 🔍 LISTAR todas as contas
+// 🔍 LISTAR contas do usuário logado
 async function listarContas(req, res) {
+  const usuario_id = req.auth.userId;
+
   try {
-    const [rows] = await db.query("SELECT * FROM contas ORDER BY data_vencimento ASC");
+    const [rows] = await db.query(
+      "SELECT * FROM contas WHERE usuario_id = ? ORDER BY data_vencimento ASC",
+      [usuario_id]
+    );
     res.json({ sucesso: true, dados: rows });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: err.message });
   }
 }
 
-// ➕ CADASTRAR conta com envio de comprovante
+// ➕ CADASTRAR conta com comprovante
 async function cadastrarContaComArquivo(req, res) {
   const { descricao, valor, data_vencimento, tipo } = req.body;
+  const usuario_id = req.auth.userId;
   const comprovante = req.file ? req.file.filename : null;
 
   if (!descricao || !valor || !data_vencimento || !tipo) {
@@ -21,8 +27,8 @@ async function cadastrarContaComArquivo(req, res) {
 
   try {
     const [resultado] = await db.query(
-      "INSERT INTO contas (descricao, valor, data_vencimento, tipo, comprovante) VALUES (?, ?, ?, ?, ?)",
-      [descricao, valor, data_vencimento, tipo, comprovante]
+      "INSERT INTO contas (descricao, valor, data_vencimento, tipo, comprovante, usuario_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [descricao, valor, data_vencimento, tipo, comprovante, usuario_id]
     );
 
     res.json({ sucesso: true, id: resultado.insertId });
@@ -32,13 +38,20 @@ async function cadastrarContaComArquivo(req, res) {
   }
 }
 
-// ✏️ EDITAR conta
+// ✏️ EDITAR conta do usuário
 async function editarConta(req, res) {
   const id = req.params.id;
   const { descricao, valor, data_vencimento, tipo } = req.body;
+  const usuario_id = req.auth.userId;
   const comprovante = req.file ? req.file.filename : null;
 
   try {
+    // Confere se a conta pertence ao usuário
+    const [check] = await db.query("SELECT id FROM contas WHERE id = ? AND usuario_id = ?", [id, usuario_id]);
+    if (check.length === 0) {
+      return res.status(403).json({ sucesso: false, erro: "Conta não encontrada ou sem permissão." });
+    }
+
     let sql = "UPDATE contas SET descricao = ?, valor = ?, data_vencimento = ?, tipo = ?";
     const params = [descricao, valor, data_vencimento, tipo];
 
@@ -58,11 +71,17 @@ async function editarConta(req, res) {
   }
 }
 
-// 🗑️ REMOVER conta
+// 🗑️ REMOVER conta do usuário
 async function removerConta(req, res) {
   const id = req.params.id;
+  const usuario_id = req.auth.userId;
 
   try {
+    const [check] = await db.query("SELECT id FROM contas WHERE id = ? AND usuario_id = ?", [id, usuario_id]);
+    if (check.length === 0) {
+      return res.status(403).json({ sucesso: false, erro: "Conta não encontrada ou sem permissão." });
+    }
+
     await db.query("DELETE FROM contas WHERE id = ?", [id]);
     res.json({ sucesso: true });
   } catch (err) {
