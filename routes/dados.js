@@ -1,34 +1,42 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db/conexao"); // ajuste se necessário
-const requireAuth = require("../middlewares/authMiddleware");
+const db = require("../db/conexao");
+const requireAuth = require("../middlewares/authMiddleware"); // Clerk
 
-// POST /dados - Salva com segurança usando o userId do Clerk
+// 📥 POST /dados — salva um novo dado com segurança
 router.post("/", requireAuth, async (req, res) => {
   const { dado } = req.body;
-  const userId = req.auth.userId;
+  const usuario_id = req.auth.userId; // ✅ vem do Clerk
 
-  if (!dado) return res.status(400).json({ erro: "Campo 'dado' obrigatório" });
+  if (!dado) {
+    return res.status(400).json({ erro: "O campo 'dado' é obrigatório." });
+  }
 
   try {
-    await db.query("INSERT INTO dados (user_id, dado) VALUES (?, ?)", [userId, dado]);
-    res.json({ sucesso: true, mensagem: "Dado salvo com sucesso" });
+    await db.query(
+      "INSERT INTO dados (usuario_id, dado) VALUES (?, ?)",
+      [usuario_id, dado]
+    );
+    res.json({ sucesso: true, mensagem: "Dado salvo com sucesso!" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: "Erro ao salvar dado" });
+    console.error("❌ Erro ao salvar dado:", error);
+    res.status(500).json({ erro: "Erro ao salvar dado." });
   }
 });
 
-// GET /dados - Lista dados do próprio usuário
+// 📤 GET /dados — lista apenas os dados do usuário logado
 router.get("/", requireAuth, async (req, res) => {
-  const userId = req.auth.userId;
+  const usuario_id = req.auth.userId;
 
   try {
-    const [dados] = await db.query("SELECT * FROM dados WHERE user_id = ?", [userId]);
+    const [dados] = await db.query(
+      "SELECT * FROM dados WHERE usuario_id = ? ORDER BY created_at DESC",
+      [usuario_id]
+    );
     res.json({ dados });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: "Erro ao buscar dados" });
+    console.error("❌ Erro ao buscar dados:", error);
+    res.status(500).json({ erro: "Erro ao buscar dados." });
   }
 });
 
