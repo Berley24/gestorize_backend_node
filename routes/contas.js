@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
-const requireAuth = require("../middlewares/authMiddleware"); // ✅ Middleware do Clerk
+const requireAuth = require("../middlewares/authMiddleware"); // ✅
 
 const {
   listarContas,
@@ -11,6 +11,7 @@ const {
   removerConta
 } = require("../controllers/contasController");
 
+// 📎 Configuração do multer para salvar arquivos
 const storage = multer.diskStorage({
   destination: "uploads/",
   filename: (req, file, cb) => {
@@ -20,10 +21,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ TODAS AS ROTAS agora exigem login e usam o usuario_id
+// ✅ Rotas protegidas (somente usuários autenticados)
 router.get("/", requireAuth, listarContas);
 router.post("/", requireAuth, upload.single("comprovante"), cadastrarContaComArquivo);
-router.put("/:id", requireAuth, editarConta);
+router.put("/:id", requireAuth, upload.single("comprovante"), editarConta);
 router.delete("/:id", requireAuth, removerConta);
 
 module.exports = router;
