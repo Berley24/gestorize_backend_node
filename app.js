@@ -43,6 +43,7 @@ app.use("/noticias", require("./routes/noticias"));
 
 
 
+
 // Rota raiz para teste
 app.get("/", (req, res) => {
   res.send("API do Gestorize está funcionando!");
