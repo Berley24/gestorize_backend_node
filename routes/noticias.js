@@ -1,29 +1,30 @@
 const express = require("express");
-const axios = require("axios");
 const router = express.Router();
+const axios = require("axios");
 
+// 📰 GET /noticias — retorna apenas notícias de finanças e empreendedorismo
 router.get("/", async (req, res) => {
   try {
     const resposta = await axios.get("https://newsapi.org/v2/everything", {
       params: {
-        q: "finanças OR economia OR investimentos OR empreendedorismo OR renda extra OR gestão financeira OR negócios OR educação financeira OR planejamento financeiro OR saúde financeira OR mentalidade financeira OR organização financeira OR orçamento OR dívidas OR CNPJ OR MEI OR lucros OR startup OR inovação OR produtividade",
+        q: "finanças OR empreendedorismo OR economia OR investimentos OR renda extra OR finanças pessoais",
         language: "pt",
         sortBy: "publishedAt",
         pageSize: 10,
-        apiKey: process.env.NEWS_API_KEY
-      }
+        apiKey: process.env.NEWS_API_KEY,
+      },
     });
 
-    const noticias = resposta.data.articles.map(noticia => ({
-      title: noticia.title,
-      description: noticia.description,
-      url: noticia.url,
-      image: noticia.urlToImage
+    const dados = resposta.data.articles.map((artigo) => ({
+      title: artigo.title,
+      description: artigo.description,
+      url: artigo.url,
+      image: artigo.urlToImage,
     }));
 
-    res.json({ sucesso: true, dados: noticias });
-  } catch (error) {
-    console.error("❌ Erro ao buscar notícias:", error.message);
+    res.json({ sucesso: true, dados });
+  } catch (err) {
+    console.error("❌ Erro ao buscar notícias:", err.message);
     res.status(500).json({ sucesso: false, erro: "Erro ao buscar notícias" });
   }
 });
