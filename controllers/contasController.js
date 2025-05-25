@@ -18,9 +18,6 @@ async function listarContas(req, res) {
 
 // ➕ CADASTRAR conta com envio de comprovante e categoria
 async function cadastrarContaComArquivo(req, res) {
-  console.log("📥 REQ.BODY:", req.body);
-  console.log("📎 REQ.FILE:", req.file);
-
   const { descricao, valor, data_vencimento, tipo, categoria_id } = req.body;
   const comprovante = req.file ? req.file.filename : null;
 
@@ -78,9 +75,54 @@ async function removerConta(req, res) {
   }
 }
 
+//
+// === 📂 CATEGORIAS ===
+//
+
+// 🔍 LISTAR categorias
+async function listarCategorias(req, res) {
+  try {
+    const [rows] = await db.query("SELECT * FROM categorias ORDER BY nome ASC");
+    res.json({ sucesso: true, dados: rows });
+  } catch (err) {
+    res.status(500).json({ sucesso: false, erro: err.message });
+  }
+}
+
+// ➕ CADASTRAR categoria
+async function cadastrarCategoria(req, res) {
+  const { nome } = req.body;
+
+  if (!nome) {
+    return res.status(400).json({ sucesso: false, erro: "Nome da categoria é obrigatório." });
+  }
+
+  try {
+    await db.query("INSERT INTO categorias (nome) VALUES (?)", [nome]);
+    res.json({ sucesso: true });
+  } catch (err) {
+    res.status(500).json({ sucesso: false, erro: err.message });
+  }
+}
+
+// 🗑️ REMOVER categoria
+async function removerCategoria(req, res) {
+  const id = req.params.id;
+
+  try {
+    await db.query("DELETE FROM categorias WHERE id = ?", [id]);
+    res.json({ sucesso: true });
+  } catch (err) {
+    res.status(500).json({ sucesso: false, erro: err.message });
+  }
+}
+
 module.exports = {
   listarContas,
   cadastrarContaComArquivo,
   editarConta,
-  removerConta
+  removerConta,
+  listarCategorias,
+  cadastrarCategoria,
+  removerCategoria
 };

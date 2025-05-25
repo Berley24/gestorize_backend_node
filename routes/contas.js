@@ -7,7 +7,10 @@ const {
   listarContas,
   cadastrarContaComArquivo,
   editarConta,
-  removerConta
+  removerConta,
+  listarCategorias,
+  cadastrarCategoria,
+  removerCategoria
 } = require("../controllers/contasController");
 
 // 📎 Configuração do multer para salvar arquivos na pasta uploads/
@@ -20,10 +23,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ Rotas públicas (sem verificação de usuário)
+// ✅ Rotas de CONTAS
 router.get("/", listarContas);
 router.post("/", upload.single("comprovante"), cadastrarContaComArquivo);
 router.put("/:id", editarConta);
 router.delete("/:id", removerConta);
+
+// ✅ Rotas de CATEGORIAS
+router.get("/categorias", listarCategorias);
+router.post("/categorias", cadastrarCategoria);
+router.delete("/categorias/:id", removerCategoria);
 
 module.exports = router;
