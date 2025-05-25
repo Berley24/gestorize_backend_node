@@ -1,4 +1,14 @@
-const { ClerkExpressRequireAuth } = require("@clerk/clerk-sdk-node");
+const { getAuth } = require("@clerk/express");
 
-// Middleware que exige autenticação e injeta req.auth.userId
-module.exports = ClerkExpressRequireAuth();
+function requireAuth(req, res, next) {
+  const auth = getAuth(req);
+
+  if (!auth || !auth.userId) {
+    return res.status(401).json({ erro: "Não autenticado." });
+  }
+
+  req.auth = auth; // ✅ Agora `req.auth.userId` vai existir
+  next();
+}
+
+module.exports = requireAuth;
