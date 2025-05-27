@@ -20,7 +20,6 @@ async function adicionarMovimentacao(req, res) {
       return res.status(400).json({ sucesso: false, erro: "Dados inválidos." });
     }
 
-    // ❗ Verifique se a coluna 'origem' existe. Se não existir, remova ela.
     await db.query(
       "INSERT INTO movimentacoes (descricao, valor, tipo, origem) VALUES (?, ?, ?, 'manual')",
       [descricao, valor, tipo]
@@ -33,7 +32,25 @@ async function adicionarMovimentacao(req, res) {
   }
 }
 
+async function deletarMovimentacao(req, res) {
+  const id = req.params.id;
+
+  try {
+    const [resultado] = await db.query("DELETE FROM movimentacoes WHERE id = ?", [id]);
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ sucesso: false, erro: "Movimentação não encontrada." });
+    }
+
+    res.json({ sucesso: true, mensagem: "Movimentação excluída com sucesso." });
+  } catch (err) {
+    console.error("❌ Erro ao excluir movimentação:", err.message);
+    res.status(500).json({ sucesso: false, erro: "Erro ao excluir movimentação." });
+  }
+}
+
 module.exports = {
   listarMovimentacoes,
   adicionarMovimentacao,
+  deletarMovimentacao,
 };
