@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
-const { ClerkExpressRequireAuth, getAuth } = require("@clerk/express");
+const { requireAuth, getAuth } = require("@clerk/express");
 
 const {
   listarContas,
@@ -15,7 +15,7 @@ const {
 } = require("../controllers/contasController");
 
 // 📎 Middleware de autenticação para todas as rotas desse arquivo
-router.use(ClerkExpressRequireAuth());
+router.use(requireAuth());
 
 // 📎 Middleware para capturar o userId do Clerk
 function adicionarUserIdAoRequest(req, res, next) {
