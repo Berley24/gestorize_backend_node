@@ -1,13 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
+const { ClerkExpressRequireAuth, getAuth } = require("@clerk/express");
 
 const app = express();
 
 // Lista de domínios permitidos para CORS
 const allowedOrigins = [
-  "https://gestorize.netlify.app",
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "https://gestorize.netlify.app"
 ];
 
 // Configuração manual de CORS
@@ -29,29 +30,33 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Servir arquivos estáticos da pasta uploads
+// Servir arquivos da pasta uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Rotas públicas
-app.use("/produtos", require("./routes/produtos"));
-app.use("/custos", require("./routes/custos"));
-app.use("/contas", require("./routes/contas"));
-app.use("/movimentacoes", require("./routes/movimentacoes"));
 app.use("/cotacoes", require("./routes/cotacoes"));
 app.use("/noticias", require("./routes/noticias"));
 app.use("/categorias", require("./routes/categorias"));
 
+// Rotas protegidas com Clerk
+app.use("/produtos", ClerkExpressRequireAuth(), require("./routes/produtos"));
+app.use("/custos", ClerkExpressRequireAuth(), require("./routes/custos"));
+app.use("/contas", ClerkExpressRequireAuth(), require("./routes/contas"));
+app.use("/movimentacoes", ClerkExpressRequireAuth(), require("./routes/movimentacoes"));
 
+// Rota protegida simples para teste
+app.get("/usuario", ClerkExpressRequireAuth(), (req, res) => {
+  const { userId } = getAuth(req);
+  res.json({ mensagem: "Usuário autenticado", userId });
+});
 
-
-
-// Rota raiz para teste
+// Rota raiz
 app.get("/", (req, res) => {
   res.send("API do Gestorize está funcionando!");
 });
 
 // Iniciar servidor
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });

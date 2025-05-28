@@ -1,14 +1,15 @@
 const db = require("../db/conexao");
 
-// 🔍 LISTAR todas as contas (com nome da categoria)
+// 🔍 LISTAR todas as contas do usuário
 async function listarContas(req, res) {
   try {
     const [rows] = await db.query(`
       SELECT contas.*, categorias.nome AS nome_categoria
       FROM contas
       LEFT JOIN categorias ON contas.categoria_id = categorias.id
+      WHERE contas.user_id = ?
       ORDER BY data_vencimento ASC
-    `);
+    `, [req.userId]);
 
     res.json({ sucesso: true, dados: rows });
   } catch (err) {
@@ -27,7 +28,7 @@ async function detectarCategoriaPorDescricao(descricao) {
   return variaveis.length > 0 ? variaveis[0].categoria_id : null;
 }
 
-// ➕ CADASTRAR conta com envio de comprovante e categoria (auto detecta se necessário)
+// ➕ CADASTRAR conta com envio de comprovante
 async function cadastrarContaComArquivo(req, res) {
   const { descricao, valor, data_vencimento, tipo, categoria_id } = req.body;
   const comprovante = req.file ? req.file.filename : null;
@@ -40,8 +41,9 @@ async function cadastrarContaComArquivo(req, res) {
     }
 
     await db.query(
-      "INSERT INTO contas (descricao, valor, data_vencimento, tipo, comprovante, categoria_id) VALUES (?, ?, ?, ?, ?, ?)",
-      [descricao, valor, data_vencimento, tipo, comprovante, categoriaDetectada]
+      `INSERT INTO contas (descricao, valor, data_vencimento, tipo, comprovante, categoria_id, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [descricao, valor, data_vencimento, tipo, comprovante, categoriaDetectada, req.userId]
     );
 
     res.json({ sucesso: true });
@@ -51,13 +53,19 @@ async function cadastrarContaComArquivo(req, res) {
   }
 }
 
-// ✏️ EDITAR conta
+// ✏️ EDITAR conta (somente do próprio usuário)
 async function editarConta(req, res) {
   const id = req.params.id;
   const { descricao, valor, data_vencimento, tipo, categoria_id } = req.body;
   const comprovante = req.file ? req.file.filename : null;
 
   try {
+    // Verifica se a conta é do usuário
+    const [verificacao] = await db.query("SELECT id FROM contas WHERE id = ? AND user_id = ?", [id, req.userId]);
+    if (verificacao.length === 0) {
+      return res.status(403).json({ sucesso: false, erro: "Acesso negado." });
+    }
+
     let categoriaDetectada = categoria_id;
 
     if (!categoria_id || categoria_id === "") {
@@ -75,8 +83,8 @@ async function editarConta(req, res) {
       params.push(comprovante);
     }
 
-    sql += ` WHERE id = ?`;
-    params.push(id);
+    sql += ` WHERE id = ? AND user_id = ?`;
+    params.push(id, req.userId);
 
     await db.query(sql, params);
 
@@ -86,22 +94,27 @@ async function editarConta(req, res) {
   }
 }
 
-// 🗑️ REMOVER conta
+// 🗑️ REMOVER conta (somente do próprio usuário)
 async function removerConta(req, res) {
   const id = req.params.id;
 
   try {
-    await db.query("DELETE FROM contas WHERE id = ?", [id]);
+    const [verificacao] = await db.query("SELECT id FROM contas WHERE id = ? AND user_id = ?", [id, req.userId]);
+    if (verificacao.length === 0) {
+      return res.status(403).json({ sucesso: false, erro: "Acesso negado." });
+    }
+
+    await db.query("DELETE FROM contas WHERE id = ? AND user_id = ?", [id, req.userId]);
     res.json({ sucesso: true });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: err.message });
   }
 }
 
-// 🔍 LISTAR categorias
+// 🔍 LISTAR categorias do usuário
 async function listarCategorias(req, res) {
   try {
-    const [rows] = await db.query("SELECT * FROM categorias ORDER BY nome ASC");
+    const [rows] = await db.query("SELECT * FROM categorias WHERE user_id = ? ORDER BY nome ASC", [req.userId]);
     res.json({ sucesso: true, dados: rows });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: err.message });
@@ -117,7 +130,7 @@ async function cadastrarCategoria(req, res) {
   }
 
   try {
-    await db.query("INSERT INTO categorias (nome) VALUES (?)", [nome]);
+    await db.query("INSERT INTO categorias (nome, user_id) VALUES (?, ?)", [nome, req.userId]);
     res.json({ sucesso: true });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: err.message });
@@ -129,7 +142,7 @@ async function removerCategoria(req, res) {
   const id = req.params.id;
 
   try {
-    await db.query("DELETE FROM categorias WHERE id = ?", [id]);
+    await db.query("DELETE FROM categorias WHERE id = ? AND user_id = ?", [id, req.userId]);
     res.json({ sucesso: true });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: err.message });
