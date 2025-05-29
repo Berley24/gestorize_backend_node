@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { ClerkExpressRequireAuth, getAuth } = require("@clerk/express");
+const { requireAuth, getAuth } = require("@clerk/express");
 
 const {
   listarMovimentacoes,
@@ -9,7 +9,7 @@ const {
 } = require("../controllers/movimentacoesController");
 
 // Middleware de autenticação Clerk
-router.use(ClerkExpressRequireAuth());
+router.use(requireAuth());
 
 // Middleware para injetar o userId no req
 function adicionarUserIdAoRequest(req, res, next) {
