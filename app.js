@@ -47,9 +47,9 @@ app.get("/usuario", requireAuth(), (req, res) => {
   res.json({ mensagem: "Usuário autenticado", userId });
 });
 
-// Rota raiz
+// 🟢 Rota raiz atualizada para JSON
 app.get("/", (req, res) => {
-  res.send("API do Gestorize está funcionando!");
+  res.json({ mensagem: "API do Gestorize está funcionando!" });
 });
 
 const PORT = process.env.PORT || 3001;
