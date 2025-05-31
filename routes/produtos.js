@@ -3,6 +3,23 @@ const router = express.Router();
 const { getAuth } = require("@clerk/express");
 const db = require("../db/conexao");
 
+// 🟢 Rota para listar produtos (apenas do usuário autenticado)
+router.get("/", async (req, res) => {
+  const { userId } = getAuth(req);
+
+  try {
+    const [produtos] = await db.query(
+      "SELECT * FROM produtos WHERE user_id = ?",
+      [userId]
+    );
+    res.json({ produtos });
+  } catch (error) {
+    console.error("Erro ao listar produtos:", error.message);
+    res.status(500).json({ erro: "Erro ao listar produtos" });
+  }
+});
+
+// 🟢 Rota para cadastrar produto (associando ao usuário autenticado)
 router.post("/", async (req, res) => {
   const { userId } = getAuth(req);
   const { nome, categoria, unidade, preco_base } = req.body;
@@ -20,3 +37,4 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+// 🟢 Rota para buscar produto por ID (do usuário autenticado)
