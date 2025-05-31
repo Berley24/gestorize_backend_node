@@ -41,8 +41,8 @@ app.get("/usuario", requireAuth(), (req, res) => {
   res.json({ mensagem: "Usuário autenticado", userId });
 });
 
-// 🟢 Rota raiz que retorna dados de custos (sem autenticação!)
-app.get("/", async (req, res) => {
+// 🟢 Rota raiz que retorna dados de custos (com autenticação!)
+app.get("/", requireAuth(), async (req, res) => {
   try {
     const db = require("./db/conexao");
     const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
@@ -56,8 +56,9 @@ app.get("/", async (req, res) => {
   }
 });
 
+
 // 🟢 Inicialize o servidor
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
