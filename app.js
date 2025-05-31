@@ -56,7 +56,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-
 // 🟢 Inicialize o servidor
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
