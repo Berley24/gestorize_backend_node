@@ -1,9 +1,8 @@
 const db = require("../db/conexao");
-const { getAuth } = require("@clerk/express");
 
 // 📄 GET /custos
 exports.listarCustos = async (req, res) => {
-  const { userId } = getAuth(req); // 🔑 Pega o ID do usuário autenticado
+  const { userId } = getAuth(req); // Obter o ID do usuário autenticado!
 
   try {
     const [rows] = await db.query(
@@ -28,13 +27,12 @@ exports.listarCustos = async (req, res) => {
 
 // 📘 GET /custos/:id
 exports.buscarCustoPorId = async (req, res) => {
-  const { userId } = getAuth(req);
   const id = req.params.id;
 
   try {
     const [rows] = await db.query(
-      "SELECT * FROM calculos_custos WHERE id = ? AND user_id = ?",
-      [id, userId]
+      "SELECT * FROM calculos_custos WHERE id = ?",
+      [id]
     );
     if (rows.length > 0) {
       res.json({ sucesso: true, dados: rows[0] });
@@ -49,7 +47,6 @@ exports.buscarCustoPorId = async (req, res) => {
 
 // 💾 POST /custos
 exports.calcularCustos = async (req, res) => {
-  const { userId } = getAuth(req); // ➜ Adicione userId ao cadastro
   try {
     const {
       produto_id, md, mod, cif,
@@ -85,8 +82,8 @@ exports.calcularCustos = async (req, res) => {
         impostos_valor, receita_liquida, lucro_liquido,
         margem_contribuicao, margem_percentual,
         ponto_equilibrio_unidades, ponto_equilibrio_reais,
-        data_calculo, user_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        data_calculo
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       produto_id, md, mod, cif, qtdProduzida, qtdVendida,
       precoVenda, impostos, despesas, custoDireto, cpp,
@@ -94,7 +91,7 @@ exports.calcularCustos = async (req, res) => {
       impostosValor, receitaLiquida, lucroLiquido,
       margemContribuicao, margemPercentual,
       pontoEquilibrioUnidades, pontoEquilibrioReais,
-      dataCalculo, userId // ➜ Salva quem é o dono dos cálculos!
+      dataCalculo
     ]);
 
     res.json({ sucesso: true });
@@ -106,19 +103,9 @@ exports.calcularCustos = async (req, res) => {
 
 // 🗑️ DELETE /custos/:id
 exports.excluirCalculo = async (req, res) => {
-  const { userId } = getAuth(req);
   const id = req.params.id;
 
   try {
-    // Só deleta se pertencer ao usuário
-    const [rows] = await db.query(
-      "SELECT * FROM calculos_custos WHERE id = ? AND user_id = ?",
-      [id, userId]
-    );
-    if (rows.length === 0) {
-      return res.status(404).json({ sucesso: false, erro: "Cálculo não encontrado." });
-    }
-
     await db.query("DELETE FROM calculos_custos WHERE id = ?", [id]);
     res.json({ sucesso: true });
   } catch (error) {
@@ -129,13 +116,12 @@ exports.excluirCalculo = async (req, res) => {
 
 // 🔍 POST /custos/ultimo
 exports.buscarUltimoCusto = async (req, res) => {
-  const { userId } = getAuth(req);
   const { produto_id } = req.body;
 
   try {
     const [rows] = await db.query(
-      "SELECT * FROM calculos_custos WHERE produto_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1",
-      [produto_id, userId]
+      "SELECT * FROM calculos_custos WHERE produto_id = ? ORDER BY id DESC LIMIT 1",
+      [produto_id]
     );
     res.json({ sucesso: true, dados: rows[0] || null });
   } catch (error) {
