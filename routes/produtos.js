@@ -36,6 +36,26 @@ router.post("/", async (req, res) => {
   }
 });
 
+// 🟢 Rota para buscar produto por ID (apenas se for do usuário autenticado)
+router.get("/:id", async (req, res) => {
+  const { userId } = getAuth(req);
+  const produtoId = req.params.id;
+
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM produtos WHERE id = ? AND user_id = ?",
+      [produtoId, userId]
+    );
+
+    if (rows.length > 0) {
+      res.json({ sucesso: true, produto: rows[0] });
+    } else {
+      res.status(404).json({ sucesso: false, erro: "Produto não encontrado." });
+    }
+  } catch (error) {
+    console.error("Erro ao buscar produto:", error.message);
+    res.status(500).json({ erro: "Erro ao buscar produto." });
+  }
+});
 
 module.exports = router;
-// 🟢 Rota para buscar produto por ID (do usuário autenticado)
