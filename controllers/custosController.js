@@ -1,18 +1,17 @@
 const db = require("../db/conexao");
-const { getAuth } = require("@clerk/express");
 
 // 📄 GET /custos
 exports.listarCustos = async (req, res) => {
-  const { userId } = getAuth(req);
+  const { userId } = getAuth(req); // Pega o usuário autenticado via Clerk
+
   try {
-    const [rows] = await db.query(
-      `SELECT c.*, p.nome AS produto_nome
-       FROM calculos_custos c
-       JOIN produtos p ON c.produto_id = p.id
-       WHERE p.user_id = ?
-       ORDER BY c.id DESC`,
-      [userId]
-    );
+    const [rows] = await db.query(`
+      SELECT c.*, p.nome AS produto_nome 
+      FROM calculos_custos c
+      JOIN produtos p ON c.produto_id = p.id
+      WHERE p.user_id = ?
+      ORDER BY c.id DESC
+    `, [userId]);
 
     const convertidos = rows.map(item => ({
       ...item,
@@ -29,11 +28,16 @@ exports.listarCustos = async (req, res) => {
   }
 };
 
+
 // 📘 GET /custos/:id
 exports.buscarCustoPorId = async (req, res) => {
   const id = req.params.id;
+
   try {
-    const [rows] = await db.query("SELECT * FROM calculos_custos WHERE id = ?", [id]);
+    const [rows] = await db.query(
+      "SELECT * FROM calculos_custos WHERE id = ?",
+      [id]
+    );
     if (rows.length > 0) {
       res.json({ sucesso: true, dados: rows[0] });
     } else {
@@ -104,6 +108,7 @@ exports.calcularCustos = async (req, res) => {
 // 🗑️ DELETE /custos/:id
 exports.excluirCalculo = async (req, res) => {
   const id = req.params.id;
+
   try {
     await db.query("DELETE FROM calculos_custos WHERE id = ?", [id]);
     res.json({ sucesso: true });
@@ -116,6 +121,7 @@ exports.excluirCalculo = async (req, res) => {
 // 🔍 POST /custos/ultimo
 exports.buscarUltimoCusto = async (req, res) => {
   const { produto_id } = req.body;
+
   try {
     const [rows] = await db.query(
       "SELECT * FROM calculos_custos WHERE produto_id = ? ORDER BY id DESC LIMIT 1",
