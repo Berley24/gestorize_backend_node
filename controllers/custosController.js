@@ -2,16 +2,8 @@ const db = require("../db/conexao");
 
 // 📄 GET /custos
 exports.listarCustos = async (req, res) => {
-  const { userId } = getAuth(req); // Pega o usuário autenticado via Clerk
-
   try {
-    const [rows] = await db.query(`
-      SELECT c.*, p.nome AS produto_nome 
-      FROM calculos_custos c
-      JOIN produtos p ON c.produto_id = p.id
-      WHERE p.user_id = ?
-      ORDER BY c.id DESC
-    `, [userId]);
+    const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
 
     const convertidos = rows.map(item => ({
       ...item,
@@ -27,7 +19,6 @@ exports.listarCustos = async (req, res) => {
     res.status(500).json({ erro: "Erro ao buscar os custos." });
   }
 };
-
 
 // 📘 GET /custos/:id
 exports.buscarCustoPorId = async (req, res) => {
