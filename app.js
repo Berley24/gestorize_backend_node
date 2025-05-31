@@ -48,9 +48,21 @@ app.get("/usuario", requireAuth(), (req, res) => {
 });
 
 // 🟢 Rota raiz atualizada para JSON
-app.get("/", (req, res) => {
-  res.json({ mensagem: "API do Gestorize está funcionando!" });
+// 🟢 Rota raiz atualizada para chamar a /custos e trazer já os dados de custos
+app.get("/", requireAuth(), async (req, res) => {
+  try {
+    const db = require("./db/conexao");
+    const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
+    res.json({
+      mensagem: "API do Gestorize está funcionando e dados de custos carregados.",
+      dados: rows
+    });
+  } catch (error) {
+    console.error("❌ Erro ao buscar custos:", error.message);
+    res.status(500).json({ erro: "Erro ao buscar os dados de custos na rota raiz." });
+  }
 });
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
