@@ -41,8 +41,8 @@ app.get("/usuario", requireAuth(), (req, res) => {
   res.json({ mensagem: "Usuário autenticado", userId });
 });
 
-// 🟢 Rota raiz que retorna dados de custos (apenas autenticados)
-app.get("/", requireAuth(), async (req, res) => {
+// 🟢 Rota raiz que retorna dados de custos (sem autenticação!)
+app.get("/", async (req, res) => {
   try {
     const db = require("./db/conexao");
     const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
@@ -55,6 +55,7 @@ app.get("/", requireAuth(), async (req, res) => {
     res.status(500).json({ erro: "Erro ao buscar os dados de custos na rota raiz." });
   }
 });
+
 
 // 🟢 Inicialize o servidor
 const PORT = process.env.PORT || 3001;
