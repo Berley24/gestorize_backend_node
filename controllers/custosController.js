@@ -3,8 +3,13 @@ const db = require("../db/conexao");
 
 // 📄 GET /custos
 exports.listarCustos = async (req, res) => {
+  const { userId } = getAuth(req); // Obter o ID do usuário autenticado!
+
   try {
-    const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
+    const [rows] = await db.query(
+      "SELECT * FROM calculos_custos WHERE user_id = ? ORDER BY id DESC",
+      [userId]
+    );
 
     const convertidos = rows.map(item => ({
       ...item,
@@ -43,6 +48,7 @@ exports.buscarCustoPorId = async (req, res) => {
 
 // 💾 POST /custos
 exports.calcularCustos = async (req, res) => {
+  const { userId } = getAuth(req); // Obter o ID do usuário autenticado!
   try {
     const {
       produto_id, md, mod, cif,
@@ -78,8 +84,8 @@ exports.calcularCustos = async (req, res) => {
         impostos_valor, receita_liquida, lucro_liquido,
         margem_contribuicao, margem_percentual,
         ponto_equilibrio_unidades, ponto_equilibrio_reais,
-        data_calculo
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        data_calculo, user_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       produto_id, md, mod, cif, qtdProduzida, qtdVendida,
       precoVenda, impostos, despesas, custoDireto, cpp,
@@ -87,7 +93,7 @@ exports.calcularCustos = async (req, res) => {
       impostosValor, receitaLiquida, lucroLiquido,
       margemContribuicao, margemPercentual,
       pontoEquilibrioUnidades, pontoEquilibrioReais,
-      dataCalculo
+      dataCalculo, userId // Salvar o user_id do usuário autenticado!
     ]);
 
     res.json({ sucesso: true });
