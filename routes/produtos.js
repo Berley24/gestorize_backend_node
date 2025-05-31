@@ -58,4 +58,26 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// 🟢 Rota para deletar produto por ID (apenas se for do usuário autenticado)
+router.delete("/:id", async (req, res) => {
+  const { userId } = getAuth(req);
+  const produtoId = req.params.id;
+
+  try {
+    const [resultado] = await db.query(
+      "DELETE FROM produtos WHERE id = ? AND user_id = ?",
+      [produtoId, userId]
+    );
+
+    if (resultado.affectedRows > 0) {
+      res.json({ sucesso: true });
+    } else {
+      res.status(404).json({ sucesso: false, erro: "Produto não encontrado ou não pertence ao usuário." });
+    }
+  } catch (error) {
+    console.error("Erro ao deletar produto:", error.message);
+    res.status(500).json({ erro: "Erro ao deletar o produto." });
+  }
+});
+
 module.exports = router;
