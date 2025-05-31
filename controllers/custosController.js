@@ -1,47 +1,10 @@
+const { getAuth } = require("@clerk/express");
 const db = require("../db/conexao");
-
-// 📄 GET /custos
-exports.listarCustos = async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
-
-    const convertidos = rows.map(item => ({
-      ...item,
-      lucro_liquido: item.lucro_liquido !== null ? parseFloat(item.lucro_liquido) : null,
-      receita_liquida: item.receita_liquida !== null ? parseFloat(item.receita_liquida) : null,
-      cpp: item.cpp !== null ? parseFloat(item.cpp) : null,
-      qtd_produzida: item.qtd_produzida !== null ? parseInt(item.qtd_produzida) : null
-    }));
-
-    res.json({ dados: convertidos });
-  } catch (error) {
-    console.error("❌ Erro ao listar custos:", error.message);
-    res.status(500).json({ erro: "Erro ao buscar os custos." });
-  }
-};
-
-// 📘 GET /custos/:id
-exports.buscarCustoPorId = async (req, res) => {
-  const id = req.params.id;
-
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM calculos_custos WHERE id = ?",
-      [id]
-    );
-    if (rows.length > 0) {
-      res.json({ sucesso: true, dados: rows[0] });
-    } else {
-      res.status(404).json({ sucesso: false, erro: "Cálculo não encontrado." });
-    }
-  } catch (error) {
-    console.error("❌ Erro ao buscar cálculo por ID:", error.message);
-    res.status(500).json({ sucesso: false, erro: "Erro ao buscar cálculo." });
-  }
-};
 
 // 💾 POST /custos
 exports.calcularCustos = async (req, res) => {
+  const { userId } = getAuth(req); // 👈 Obtém o ID do usuário autenticado
+
   try {
     const {
       produto_id, md, mod, cif,
@@ -69,18 +32,19 @@ exports.calcularCustos = async (req, res) => {
 
     const dataCalculo = new Date();
 
+    // 💡 Adiciona o user_id no INSERT
     await db.query(`
       INSERT INTO calculos_custos (
-        produto_id, md, \`mod\`, cif, qtd_produzida, qtd_vendida,
+        produto_id, user_id, md, \`mod\`, cif, qtd_produzida, qtd_vendida,
         preco_venda, impostos_percentual, despesas, custo_direto, cpp,
         custo_unitario, cpv, estoque_final, receita_bruta,
         impostos_valor, receita_liquida, lucro_liquido,
         margem_contribuicao, margem_percentual,
         ponto_equilibrio_unidades, ponto_equilibrio_reais,
         data_calculo
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      produto_id, md, mod, cif, qtdProduzida, qtdVendida,
+      produto_id, userId, md, mod, cif, qtdProduzida, qtdVendida,
       precoVenda, impostos, despesas, custoDireto, cpp,
       custoUnitario, cpv, estoqueFinal, receitaBruta,
       impostosValor, receitaLiquida, lucroLiquido,
@@ -95,6 +59,7 @@ exports.calcularCustos = async (req, res) => {
     res.status(500).json({ sucesso: false, erro: "Erro ao calcular e salvar os custos." });
   }
 };
+
 
 // 🗑️ DELETE /custos/:id
 exports.excluirCalculo = async (req, res) => {
