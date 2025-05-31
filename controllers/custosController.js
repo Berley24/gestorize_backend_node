@@ -2,13 +2,8 @@ const db = require("../db/conexao");
 
 // 📄 GET /custos
 exports.listarCustos = async (req, res) => {
-  const { userId } = getAuth(req); // Obter o ID do usuário autenticado!
-
   try {
-    const [rows] = await db.query(
-      "SELECT * FROM calculos_custos WHERE user_id = ? ORDER BY id DESC",
-      [userId]
-    );
+    const [rows] = await db.query("SELECT * FROM calculos_custos ORDER BY id DESC");
 
     const convertidos = rows.map(item => ({
       ...item,
