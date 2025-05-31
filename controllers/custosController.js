@@ -1,3 +1,4 @@
+const { getAuth } = require("@clerk/express");
 const db = require("../db/conexao");
 
 // 📄 GET /custos
