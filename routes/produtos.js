@@ -36,5 +36,6 @@ router.post("/", async (req, res) => {
   }
 });
 
+
 module.exports = router;
 // 🟢 Rota para buscar produto por ID (do usuário autenticado)
