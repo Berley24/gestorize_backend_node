@@ -27,7 +27,7 @@ const listarCustos = async (req, res) => {
 };
 
 // 💾 POST /custos
-exports.calcularCustos = async (req, res) => {
+const calcularCustos = async (req, res) => {
   const { userId } = getAuth(req); // 👈 Obtém o ID do usuário autenticado
 
   try {
@@ -87,7 +87,7 @@ exports.calcularCustos = async (req, res) => {
 
 // 📘 GET /custos/:id
 const buscarCustoPorId = async (req, res) => {
-  const { userId } = require("@clerk/express").getAuth(req);
+  const { userId } = getAuth(req);
   const id = req.params.id;
 
   try {
@@ -107,9 +107,8 @@ const buscarCustoPorId = async (req, res) => {
 };
 
 // 🗑️ DELETE /custos/:id
-exports.excluirCalculo = async (req, res) => {
+const excluirCalculo = async (req, res) => {
   const id = req.params.id;
-
   try {
     await db.query("DELETE FROM calculos_custos WHERE id = ?", [id]);
     res.json({ sucesso: true });
@@ -120,7 +119,7 @@ exports.excluirCalculo = async (req, res) => {
 };
 
 // 🔍 POST /custos/ultimo
-exports.buscarUltimoCusto = async (req, res) => {
+const buscarUltimoCusto = async (req, res) => {
   const { produto_id } = req.body;
 
   try {
@@ -134,6 +133,7 @@ exports.buscarUltimoCusto = async (req, res) => {
     res.status(500).json({ sucesso: false, erro: "Erro ao buscar último custo." });
   }
 };
+
 module.exports = {
   listarCustos,
   buscarCustoPorId,
