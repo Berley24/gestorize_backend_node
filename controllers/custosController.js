@@ -85,6 +85,26 @@ exports.calcularCustos = async (req, res) => {
   }
 };
 
+// 📘 GET /custos/:id
+const buscarCustoPorId = async (req, res) => {
+  const { userId } = require("@clerk/express").getAuth(req);
+  const id = req.params.id;
+
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM calculos_custos WHERE id = ? AND user_id = ?",
+      [id, userId]
+    );
+    if (rows.length > 0) {
+      res.json({ sucesso: true, dados: rows[0] });
+    } else {
+      res.status(404).json({ sucesso: false, erro: "Cálculo não encontrado." });
+    }
+  } catch (error) {
+    console.error("❌ Erro ao buscar cálculo por ID:", error.message);
+    res.status(500).json({ sucesso: false, erro: "Erro ao buscar cálculo." });
+  }
+};
 
 // 🗑️ DELETE /custos/:id
 exports.excluirCalculo = async (req, res) => {
