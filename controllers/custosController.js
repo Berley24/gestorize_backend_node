@@ -1,6 +1,31 @@
 const { getAuth } = require("@clerk/express");
 const db = require("../db/conexao");
 
+// 📄 GET /custos
+const listarCustos = async (req, res) => {
+  const { userId } = getAuth(req); // Garante que só puxe os custos do usuário logado
+
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM calculos_custos WHERE user_id = ? ORDER BY id DESC",
+      [userId]
+    );
+
+    const convertidos = rows.map(item => ({
+      ...item,
+      lucro_liquido: item.lucro_liquido !== null ? parseFloat(item.lucro_liquido) : null,
+      receita_liquida: item.receita_liquida !== null ? parseFloat(item.receita_liquida) : null,
+      cpp: item.cpp !== null ? parseFloat(item.cpp) : null,
+      qtd_produzida: item.qtd_produzida !== null ? parseInt(item.qtd_produzida) : null
+    }));
+
+    res.json({ dados: convertidos });
+  } catch (error) {
+    console.error("❌ Erro ao listar custos:", error.message);
+    res.status(500).json({ erro: "Erro ao buscar os custos." });
+  }
+};
+
 // 💾 POST /custos
 exports.calcularCustos = async (req, res) => {
   const { userId } = getAuth(req); // 👈 Obtém o ID do usuário autenticado
