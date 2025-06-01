@@ -89,3 +89,10 @@ exports.buscarUltimoCusto = async (req, res) => {
     res.status(500).json({ sucesso: false, erro: "Erro ao buscar último custo." });
   }
 };
+module.exports = {
+  listarCustos,
+  buscarCustoPorId,
+  calcularCustos,
+  excluirCalculo,
+  buscarUltimoCusto,
+};
